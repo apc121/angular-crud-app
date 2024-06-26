@@ -1,28 +1,34 @@
 pipeline {
     agent any
+
     environment {
-        AWS_ACCESS_KEY_ID = credentials('your-aws-access-key-id')
-        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+        CREDENTIALS_ID = '3.110.45.32'
+        SERVER_USER = 'ubuntu'
+        SERVER_IP = '13.201.163.216'
+        REMOTE_DIR = '/var/www/my-web-app-frontend/'
     }
-   
+
     stages {
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                sh 'npm install'
-                sh 'npm run build'
+                git 'https://github.com/apc121/my-web-app-backend.git'
             }
         }
 
-        stage('Deploy to S3') {
+        stage('Install Dependencies') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'your-aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
-                    string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
-                ]) {
-                    // Use the 'aws s3 cp' command to upload the files
-                    sh '''
-                    aws s3 cp dist/ s3://mybucket-12121/ --recursive
-                    '''
+                sh 'npm install'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    sshagent(['3.110.45.32']) {
+                        sh '''
+                        rsync -avz -e "ssh -o StrictHostKeyChecking=no" --delete ./dist/ ${SERVER_USER}@${SERVER_IP}:${REMOTE_DIR}
+                        '''
+                    }
                 }
             }
         }
@@ -30,10 +36,10 @@ pipeline {
 
     post {
         success {
-            echo 'Deployment to S3 successful!'
+            echo 'Backend deployment successful!'
         }
         failure {
-            echo 'Deployment to S3 failed'
+            echo 'Backend deployment failed!'
         }
     }
 }
