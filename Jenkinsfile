@@ -14,18 +14,18 @@ pipeline {
                 git 'https://github.com/apc121/my-web-app-backend.git'
             }
         }
-    }
-        stages {
+
         stage('Build') {
             steps {
                 sh 'npm install'
                 sh 'npm run build'
             }
         }
+
         stage('Deploy') {
             steps {
                 script {
-                    sshagent(['3.110.45.32']) {
+                    sshagent(credentials: ['3.110.45.32']) {
                         sh '''
                         rsync -avz -e "ssh -o StrictHostKeyChecking=no" --delete ./dist/ ${SERVER_USER}@${SERVER_IP}:${REMOTE_DIR}
                         '''
@@ -37,10 +37,10 @@ pipeline {
 
     post {
         success {
-            echo 'Backend deployment successful!'
+            echo 'Deployment successful!'
         }
         failure {
-            echo 'Backend deployment failed!'
+            echo 'Deployment failed!'
         }
     }
 }
