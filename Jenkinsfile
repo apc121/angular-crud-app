@@ -5,7 +5,7 @@ pipeline {
         CREDENTIALS_ID = '3.110.45.32'
         SERVER_USER = 'ubuntu'
         SERVER_IP = '13.201.163.216'
-        REMOTE_DIR = '/var/www/my-web-app-frontend/'
+        REMOTE_DIR = '/var/www/html/'
     }
 
     stages {
@@ -18,6 +18,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
+                sh 'npm run build'
             }
         }
 
